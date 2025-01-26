@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is accessing their own data
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Rules for booklist collection
+    match /booklist/{document=**} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Rules for custom-books collection
+    match /custom-books/{document=**} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() 
+        && request.resource.data.addedBy == request.auth.uid;
+      allow update: if isAuthenticated() 
+        && resource.data.addedBy == request.auth.uid;
+      allow delete: if isAuthenticated() 
+        && resource.data.addedBy == request.auth.uid;
+    }
+
+    // Rules for posts collection
+    match /posts/{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Rules for user profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+
+      // Add validation for the user document structure
+      function isValidUserData() {
+        let data = request.resource.data;
+        return 
+          data.displayName is string &&
+          data.email is string &&
+          data.theme in ['light', 'dark', 'system'] &&
+          data.notifications is bool &&
+          data.privacy in ['public', 'friends', 'private'] &&
+          data.updatedAt is string &&
+          (data.uid == request.auth.uid);
+      }
+    }
+
+    // Rules for pending-books collection
+    match /pending-books/{document=**} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() 
+        && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Add these rules for the notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow write: if isAuthenticated();
+    }
+
+    // Update the followers rules
+    match /followers/{followId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Books collection rules
+    match /books/{bookId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(resource.data.userId);
+    }
+  }
+
+  // Add admin function
+  function isAdmin() {
+    return request.auth.uid in ['KnyjSMErQ5SQBIkreNblM9tG7Dk1'];
+  }
+}
