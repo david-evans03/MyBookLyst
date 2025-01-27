@@ -1,9 +1,5 @@
-import ClientHome from "@/components/ClientHome";
+import React from 'react';
 
 export default function Home() {
-  return (
-    <div className="max-w-2xl mx-auto">
-      <ClientHome />
-    </div>
-  );
+  return <h1>Hello World</h1>;
 }
