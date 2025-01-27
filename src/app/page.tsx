@@ -1,5 +1,35 @@
-import React from 'react';
+"use client";
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function Home() {
-  return <h1>Hello World</h1>;
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    const redirect = async () => {
+      try {
+        if (!loading) {
+          if (user) {
+            await router.push('/books');
+          } else {
+            await router.push('/auth');
+          }
+        }
+      } catch (error) {
+        console.error('Navigation error:', error);
+      }
+    };
+
+    redirect();
+  }, [user, loading, router]);
+
+  // Show a loading state while checking auth
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  );
 }
