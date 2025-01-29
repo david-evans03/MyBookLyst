@@ -33,27 +33,31 @@ const BookList = ({ books, onStatusChange }: BookListProps) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredBooks.map((book) => (
-          <div key={book.id} className="border rounded-lg p-4 shadow-sm">
-            <img
-              src={book.imageUrl || '/book-placeholder.png'}
-              alt={book.title}
-              className="w-full h-48 object-cover mb-4 rounded"
-            />
-            <h3 className="font-semibold text-lg mb-2">{book.title}</h3>
-            <p className="text-gray-600 mb-2">{book.author}</p>
-            <select
-              value={book.status}
-              onChange={(e) => onStatusChange(book.id, e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="reading">Reading</option>
-              <option value="completed">Completed</option>
-              <option value="plan-to-read">Plan to Read</option>
-              <option value="favorites">Favorites</option>
-            </select>
-          </div>
-        ))}
+        {filteredBooks.map((book) => {
+          if (!book.id) return null;
+          
+          return (
+            <div key={book.id} className="border rounded-lg p-4 shadow-sm">
+              <img
+                src={book.imageUrl || '/book-placeholder.png'}
+                alt={book.title}
+                className="w-full h-48 object-cover mb-4 rounded"
+              />
+              <h3 className="font-semibold text-lg mb-2">{book.title}</h3>
+              <p className="text-gray-600 mb-2">{book.author}</p>
+              <select
+                value={book.status}
+                onChange={(e) => onStatusChange(book.id!, e.target.value)}
+                className="w-full p-2 border rounded"
+              >
+                <option value="reading">Reading</option>
+                <option value="completed">Completed</option>
+                <option value="plan-to-read">Plan to Read</option>
+                <option value="favorites">Favorites</option>
+              </select>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

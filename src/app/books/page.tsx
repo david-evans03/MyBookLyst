@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { Book, GoogleBook } from '@/lib/types';
+import { Book, GoogleBook, NewBook } from '@/lib/types';
 import { db } from '@/lib/firebase/firebase';
 import { collection, addDoc, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
@@ -35,13 +35,17 @@ const BooksPage = () => {
   const handleBookSelect = async (googleBook: GoogleBook) => {
     if (!user) return;
 
-    const newBook: Omit<Book, 'id'> = {
+    const newBook: NewBook = {
+      googleBookId: googleBook.id,
       title: googleBook.volumeInfo.title,
       author: googleBook.volumeInfo.authors?.[0] || 'Unknown Author',
       description: googleBook.volumeInfo.description || '',
       imageUrl: googleBook.volumeInfo.imageLinks?.thumbnail || '',
+      thumbnail: googleBook.volumeInfo.imageLinks?.thumbnail || '',
       status: 'plan-to-read',
       userId: user.uid,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     await addDoc(collection(db, 'books'), newBook);

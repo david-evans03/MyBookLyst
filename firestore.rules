@@ -11,6 +11,14 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Add this function to validate OAuth tokens
+    function isValidUser() {
+      // Remove email verification requirement for testing
+      return request.auth != null && request.auth.token.email != null;
+      // Once verified, you can add back:
+      // && request.auth.token.email_verified == true
+    }
+
     // Rules for booklist collection
     match /booklist/{document=**} {
       allow read: if isAuthenticated();
@@ -78,8 +86,14 @@ service cloud.firestore {
 
     // Books collection rules
     match /books/{bookId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(resource.data.userId);
+      allow read: if request.auth != null 
+        && isValidUser() 
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null 
+        && isValidUser() 
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 
