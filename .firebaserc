@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "my-book-app-5ad8c"
-  }
+  },
+  "targets": {
+    "my-book-app-5ad8c": {
+      "hosting": {
+        "staging": [
+          "my-book-app-5ad8c"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
