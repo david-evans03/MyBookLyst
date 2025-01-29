@@ -16,9 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <div className="ambient-light" />
         <AuthProvider>
           <Navbar />
-          <main>
+          <main className="pt-24 min-h-screen">
             {children}
           </main>
         </AuthProvider>

@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { GoogleBook } from '@/lib/types';
 
 interface BookSearchProps {
-  onBookSelect: (book: GoogleBook) => void;
+  onBookSelect: (book: GoogleBook, status: string) => void;
 }
 
 const BookSearch = ({ onBookSelect }: BookSearchProps) => {
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<GoogleBook[]>([]);
   const [loading, setLoading] = useState(false);
+  const [addedBooks, setAddedBooks] = useState<{ [key: string]: boolean }>({});
 
   const searchBooks = async () => {
     if (!query.trim()) return;
@@ -29,9 +30,21 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
     }
   };
 
+  const handleStatusSelect = (book: GoogleBook, status: string) => {
+    onBookSelect(book, status);
+    setAddedBooks(prev => ({ ...prev, [book.id]: true }));
+  };
+
+  const statusOptions = [
+    { value: 'reading', label: 'Currently Reading' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'plan-to-read', label: 'Plan to Read' },
+    { value: 'favorites', label: 'Favorites' }
+  ];
+
   return (
     <div className="mb-8">
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-8">
         <input
           type="text"
           value={query}
@@ -50,22 +63,48 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
       </div>
 
       {books.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {books.map((book) => (
             <div
               key={book.id}
-              className="border rounded p-2 cursor-pointer hover:border-primary"
-              onClick={() => onBookSelect(book)}
+              className="border rounded-lg p-4 shadow-sm flex flex-col"
             >
-              <img
-                src={book.volumeInfo.imageLinks?.thumbnail || '/book-placeholder.png'}
-                alt={book.volumeInfo.title}
-                className="w-full h-32 object-cover mb-2"
-              />
-              <p className="font-medium truncate">{book.volumeInfo.title}</p>
-              <p className="text-sm text-gray-600 truncate">
+              <div className="relative pt-[150%] mb-4">
+                <img
+                  src={book.volumeInfo.imageLinks?.thumbnail || '/book-placeholder.png'}
+                  alt={book.volumeInfo.title}
+                  className="absolute top-0 left-0 w-full h-full object-contain rounded"
+                />
+              </div>
+              <h3 className="font-medium text-lg mb-2 line-clamp-2">
+                {book.volumeInfo.title}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
                 {book.volumeInfo.authors?.[0] || 'Unknown Author'}
               </p>
+              
+              {addedBooks[book.id] ? (
+                <select
+                  disabled
+                  className="w-full p-2 border rounded bg-green-50 text-green-600 cursor-not-allowed"
+                  value="added"
+                >
+                  <option value="added">Added to Lyst!</option>
+                </select>
+              ) : (
+                <select
+                  onChange={(e) => handleStatusSelect(book, e.target.value)}
+                  className="w-full p-2 border rounded"
+                  defaultValue=""
+                >
+                  <option value="" disabled>Add to My Lyst</option>
+                  {statusOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           ))}
         </div>
