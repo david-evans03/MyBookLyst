@@ -76,12 +76,12 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange }: B
   };
 
   const renderProgress = (book: Book) => {
-    const progress = book.progress || 0;
     const currentPage = book.currentPage || 0;
     const totalPages = book.totalPages || 0;
+    const progress = totalPages > 0 ? (currentPage / totalPages) * 100 : 0;
 
     return (
-      <button 
+      <button
         onClick={() => setActiveProgressBook(book.id)}
         className="w-full hover:bg-gray-800/40 p-2 rounded transition-colors"
       >
@@ -92,7 +92,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange }: B
           />
         </div>
         <span className="text-xs text-gray-400 mt-1">
-          {currentPage}/{totalPages} pages
+          {currentPage}/{book.totalPages || '?'} pages
         </span>
       </button>
     );

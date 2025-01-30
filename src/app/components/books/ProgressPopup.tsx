@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Book } from '@/lib/types';
 import { X } from 'lucide-react';
 
@@ -11,6 +11,20 @@ interface ProgressPopupProps {
 const ProgressPopup = ({ book, onProgress, onClose }: ProgressPopupProps) => {
   const [currentPage, setCurrentPage] = useState(book.currentPage || 0);
   const [totalPages, setTotalPages] = useState(book.totalPages || 0);
+
+  useEffect(() => {
+    if (book.totalPages) {
+      setTotalPages(book.totalPages);
+    }
+  }, [book.totalPages]);
+
+  const handleSave = () => {
+    if (totalPages <= 0) {
+      alert('Please enter the total number of pages');
+      return;
+    }
+    onProgress(currentPage, totalPages);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -49,23 +63,22 @@ const ProgressPopup = ({ book, onProgress, onClose }: ProgressPopupProps) => {
             </div>
           </div>
 
-          {!book.totalPages && (
-            <div>
-              <input
-                type="number"
-                value={totalPages}
-                onChange={(e) => setTotalPages(Number(e.target.value))}
-                className="w-full bg-gray-800/60 border border-gray-700 text-gray-200 rounded px-3 py-2
-                  focus:ring-1 focus:ring-cyan-400/30 focus:border-cyan-400/30"
-                min="1"
-                placeholder="Total pages"
-              />
-            </div>
-          )}
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block">Total Pages</label>
+            <input
+              type="number"
+              value={totalPages}
+              onChange={(e) => setTotalPages(Number(e.target.value))}
+              className="w-full bg-gray-800/60 border border-gray-700 text-gray-200 rounded px-3 py-2
+                focus:ring-1 focus:ring-cyan-400/30 focus:border-cyan-400/30"
+              min="1"
+              placeholder="Enter total pages"
+            />
+          </div>
         </div>
 
         <button
-          onClick={() => onProgress(currentPage, totalPages)}
+          onClick={handleSave}
           className="w-full mt-8 py-2.5 rounded bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 
             transition-colors text-sm font-medium tracking-wide"
         >

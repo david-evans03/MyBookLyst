@@ -69,11 +69,11 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
               key={book.id}
               className="border rounded-lg p-4 shadow-sm flex flex-col"
             >
-              <div className="relative pt-[150%] mb-4">
+              <div className="relative pt-[120%] mb-4">
                 <img
                   src={book.volumeInfo.imageLinks?.thumbnail || '/book-placeholder.png'}
                   alt={book.volumeInfo.title}
-                  className="absolute top-0 left-0 w-full h-full object-contain rounded"
+                  className="absolute top-0 left-0 w-full h-full object-contain rounded max-h-[180px]"
                 />
               </div>
               <h3 className="font-medium text-lg mb-2 line-clamp-2">
