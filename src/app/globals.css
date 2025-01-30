@@ -199,6 +199,11 @@ body {
   pointer-events: none;
   background: radial-gradient(
     circle at 70% 30%,
+    rgba(103, 232, 249, 0.15) 0%,
+    transparent 60%
+  ),
+  radial-gradient(
+    circle at 30% 70%,
     rgba(255, 198, 109, 0.15) 0%,
     transparent 60%
   );
@@ -211,4 +216,15 @@ body {
 
 .title-glow {
   text-shadow: 0 0 20px rgba(255, 198, 109, 0.4);
+}
+
+/* Add to your existing styles */
+.feature-card {
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px -5px rgba(103, 232, 249, 0.2);
 } 

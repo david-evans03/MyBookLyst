@@ -9,8 +9,8 @@ const Navbar = () => {
   const { user } = useAuth();
   const pathname = usePathname();
 
-  // Don't show navbar on auth page
-  if (pathname === '/auth') {
+  // Don't show navbar on landing page or auth page
+  if (pathname === '/' || pathname === '/auth') {
     return null;
   }
 
