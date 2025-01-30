@@ -167,7 +167,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange }: B
                   <select
                     value={book.status}
                     onChange={(e) => onStatusChange(book.id!, e.target.value)}
-                    className="w-full p-2 text-sm rounded bg-gray-800/60 border-gray-700 
+                    className="w-full min-w-[140px] p-2 text-sm rounded bg-gray-800/60 border-gray-700 
                       text-gray-200 backdrop-blur-sm transition-all duration-300
                       focus:ring-cyan-400/30 focus:border-cyan-400/30 hover:bg-gray-700/60"
                   >
