@@ -29,6 +29,8 @@ export interface Book {
   startDate?: string;
   finishDate?: string;
   progress?: number;
+  currentPage?: number;
+  totalPages?: number;
   createdAt: string;
   updatedAt: string;
 }

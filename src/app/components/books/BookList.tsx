@@ -3,19 +3,25 @@
 import { useState, useRef, MouseEvent } from 'react';
 import { Book } from '@/lib/types';
 import { Star } from 'lucide-react';
+import RatingPopup from './RatingPopup';
+import ProgressPopup from './ProgressPopup';
 
 interface BookListProps {
   books: Book[];
   onStatusChange: (bookId: string, newStatus: string) => void;
+  onRatingChange: (bookId: string, rating: number) => void;
+  onProgressChange: (bookId: string, currentPage: number, totalPages: number) => void;
 }
 
-const BookList = ({ books, onStatusChange }: BookListProps) => {
+const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange }: BookListProps) => {
   const [filter, setFilter] = useState('all');
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const tabsRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
+  const [activeRatingBook, setActiveRatingBook] = useState<string | null>(null);
+  const [activeProgressBook, setActiveProgressBook] = useState<string | null>(null);
 
   const filteredBooks = books.filter(book => {
     if (filter === 'all') return true;
@@ -56,14 +62,40 @@ const BookList = ({ books, onStatusChange }: BookListProps) => {
     { id: 'favorites', label: 'Favorites' }
   ];
 
-  const renderRating = (rating: number = 0) => {
-    return [...Array(5)].map((_, index) => (
-      <Star
-        key={index}
-        size={16}
-        className={index < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-      />
-    ));
+  const renderRating = (book: Book) => {
+    const rating = book.rating || 0;
+    return (
+      <button 
+        onClick={() => setActiveRatingBook(book.id)}
+        className="flex items-center gap-2 hover:bg-gray-800/40 p-2 rounded transition-colors"
+      >
+        <span className="text-cyan-200">{rating}</span>
+        <span className="text-gray-400">/10</span>
+      </button>
+    );
+  };
+
+  const renderProgress = (book: Book) => {
+    const progress = book.progress || 0;
+    const currentPage = book.currentPage || 0;
+    const totalPages = book.totalPages || 0;
+
+    return (
+      <button 
+        onClick={() => setActiveProgressBook(book.id)}
+        className="w-full hover:bg-gray-800/40 p-2 rounded transition-colors"
+      >
+        <div className="w-full bg-gray-800/60 rounded-full h-2.5">
+          <div 
+            className="bg-cyan-400/30 h-2.5 rounded-full transition-all duration-300" 
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <span className="text-xs text-gray-400 mt-1">
+          {currentPage}/{totalPages} pages
+        </span>
+      </button>
+    );
   };
 
   return (
@@ -126,20 +158,10 @@ const BookList = ({ books, onStatusChange }: BookListProps) => {
                   <div className="text-gray-400 text-sm">{book.author}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex gap-0.5">
-                    {renderRating(book.rating)}
-                  </div>
+                  {renderRating(book)}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="w-full bg-gray-800/60 rounded-full h-2.5">
-                    <div 
-                      className="bg-cyan-400/30 h-2.5 rounded-full transition-all duration-300" 
-                      style={{ width: `${book.progress || 0}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-400 mt-1">
-                    {book.progress || 0}%
-                  </span>
+                  {renderProgress(book)}
                 </td>
                 <td className="px-6 py-4">
                   <select
@@ -160,6 +182,29 @@ const BookList = ({ books, onStatusChange }: BookListProps) => {
           </tbody>
         </table>
       </div>
+
+      {activeRatingBook && (
+        <RatingPopup
+          bookId={activeRatingBook}
+          currentRating={books.find(b => b.id === activeRatingBook)?.rating || 0}
+          onRate={(rating) => {
+            onRatingChange(activeRatingBook, rating);
+            setActiveRatingBook(null);
+          }}
+          onClose={() => setActiveRatingBook(null)}
+        />
+      )}
+
+      {activeProgressBook && (
+        <ProgressPopup
+          book={books.find(b => b.id === activeProgressBook)!}
+          onProgress={(currentPage, totalPages) => {
+            onProgressChange(activeProgressBook, currentPage, totalPages);
+            setActiveProgressBook(null);
+          }}
+          onClose={() => setActiveProgressBook(null)}
+        />
+      )}
     </div>
   );
 };

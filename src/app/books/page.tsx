@@ -36,6 +36,21 @@ const BooksPage = () => {
     loadBooks();
   };
 
+  const handleRatingChange = async (bookId: string, rating: number) => {
+    await updateDoc(doc(db, 'books', bookId), { rating });
+    loadBooks();
+  };
+
+  const handleProgressChange = async (bookId: string, currentPage: number, totalPages: number) => {
+    const progress = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+    await updateDoc(doc(db, 'books', bookId), { 
+      currentPage,
+      totalPages,
+      progress
+    });
+    loadBooks();
+  };
+
   if (!user) {
     return null;
   }
@@ -43,7 +58,12 @@ const BooksPage = () => {
   return (
     <div className="container py-4">
       <h1 className="text-3xl font-bold mb-8 text-cyan-200 title-glow">My Books</h1>
-      <BookList books={books} onStatusChange={handleStatusChange} />
+      <BookList 
+        books={books} 
+        onStatusChange={handleStatusChange}
+        onRatingChange={handleRatingChange}
+        onProgressChange={handleProgressChange}
+      />
     </div>
   );
 };
