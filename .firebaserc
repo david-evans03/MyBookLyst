@@ -5,7 +5,10 @@
   "targets": {
     "my-book-app-5ad8c": {
       "hosting": {
-        "production": ["my-book-app-5ad8c"]
+        "staging": [
+          "my-book-app-5ad8c",
+          "staging-my-book-app"
+        ]
       }
     }
   },
