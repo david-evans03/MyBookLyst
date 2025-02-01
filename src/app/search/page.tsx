@@ -35,8 +35,8 @@ const SearchPage = () => {
   }
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Search Books</h1>
+    <div className="container py-4">
+      <h1 className="text-3xl font-bold mb-8 text-cyan-200 title-glow text-center">Search Books</h1>
       <BookSearch onBookSelect={handleBookSelect} />
     </div>
   );

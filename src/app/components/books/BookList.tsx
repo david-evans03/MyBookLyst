@@ -2,7 +2,7 @@
 
 import { useState, useRef, MouseEvent } from 'react';
 import { Book } from '@/lib/types';
-import { Star } from 'lucide-react';
+import { Star, X } from 'lucide-react';
 import RatingPopup from './RatingPopup';
 import ProgressPopup from './ProgressPopup';
 
@@ -11,9 +11,10 @@ interface BookListProps {
   onStatusChange: (bookId: string, newStatus: string) => void;
   onRatingChange: (bookId: string, rating: number) => void;
   onProgressChange: (bookId: string, currentPage: number, totalPages: number) => void;
+  onDeleteBook: (bookId: string) => void;
 }
 
-const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange }: BookListProps) => {
+const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onDeleteBook }: BookListProps) => {
   const [filter, setFilter] = useState('all');
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -144,7 +145,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange }: B
           </thead>
           <tbody>
             {filteredBooks.map((book, index) => (
-              <tr key={book.id} className="border-b border-gray-700/50 hover:bg-gray-800/40 transition-all duration-300">
+              <tr key={book.id} className="border-b border-gray-700/50 hover:bg-gray-800/40 transition-all duration-300 group">
                 <td className="px-6 py-4 text-gray-300">{index + 1}</td>
                 <td className="px-6 py-4">
                   <img
@@ -163,7 +164,16 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange }: B
                 <td className="px-6 py-4">
                   {renderProgress(book)}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 relative">
+                  <button
+                    onClick={() => onDeleteBook(book.id!)}
+                    className="opacity-0 group-hover:opacity-100 absolute top-0 right-2
+                      p-1 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400
+                      transition-all duration-300"
+                  >
+                    <X size={14} />
+                  </button>
+                  
                   <select
                     value={book.status}
                     onChange={(e) => onStatusChange(book.id!, e.target.value)}

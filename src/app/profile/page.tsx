@@ -19,8 +19,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Profile</h1>
+    <div className="container py-4">
+      <h1 className="text-3xl font-bold mb-8 text-cyan-200 title-glow text-center">Profile</h1>
       <p className="text-gray-600">This page is under construction.</p>
     </div>
   );
