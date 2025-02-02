@@ -7,7 +7,14 @@ import { db } from '@/lib/firebase/firebase';
 import { collection, query, where, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
 
-const BookList = dynamic(() => import('../components/books/BookList'), { ssr: false });
+const BookList = dynamic(() => import('@/app/components/books/BookList'), { 
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="text-cyan-200">Loading...</div>
+    </div>
+  )
+});
 
 const BooksPage = () => {
   const [books, setBooks] = useState<Book[]>([]);
