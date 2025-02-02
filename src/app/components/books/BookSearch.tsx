@@ -39,7 +39,7 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
     { value: 'reading', label: 'Currently Reading' },
     { value: 'completed', label: 'Completed' },
     { value: 'plan-to-read', label: 'Plan to Read' },
-    { value: 'favorites', label: 'Favorites' }
+    { value: 'dropped', label: 'Dropped' }
   ];
 
   return (

@@ -60,7 +60,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
     { id: 'reading', label: 'Currently Reading' },
     { id: 'completed', label: 'Completed' },
     { id: 'plan-to-read', label: 'Plan to Read' },
-    { id: 'favorites', label: 'Favorites' }
+    { id: 'dropped', label: 'Dropped' }
   ];
 
   const renderRating = (book: Book) => {
@@ -184,7 +184,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
                     <option value="reading">Reading</option>
                     <option value="completed">Completed</option>
                     <option value="plan-to-read">Plan to Read</option>
-                    <option value="favorites">Favorites</option>
+                    <option value="dropped">Dropped</option>
                   </select>
                 </td>
               </tr>
