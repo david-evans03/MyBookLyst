@@ -5,7 +5,7 @@ import {
   User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut,
+  signOut as firebaseSignOut,
   onAuthStateChanged,
   updateProfile,
   signInWithPopup,
@@ -64,12 +64,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithPopup(auth, provider);
   };
 
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
     signIn,
     signUp,
-    signOut: () => signOut(auth),
+    signOut,
     signInWithGoogle,
   };
 
