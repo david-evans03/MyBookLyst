@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { GoogleBook } from '@/lib/types';
+import Image from 'next/image';
 
 interface BookSearchProps {
   onBookSelect: (book: GoogleBook, status: string) => void;
@@ -39,7 +40,7 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
     { value: 'reading', label: 'Currently Reading' },
     { value: 'completed', label: 'Completed' },
     { value: 'plan-to-read', label: 'Plan to Read' },
-    { value: 'favorites', label: 'Favorites' }
+    { value: 'dropped', label: 'Dropped' }
   ];
 
   return (
@@ -63,17 +64,21 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
       </div>
 
       {books.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {books.map((book) => (
-            <div
+            <div 
               key={book.id}
-              className="border rounded-lg p-4 shadow-sm flex flex-col"
+              className="bg-gray-900/40 backdrop-blur-sm p-4 rounded-xl border border-gray-700/30 
+                hover:border-cyan-400/30 transition-all duration-300"
             >
-              <div className="relative pt-[120%] mb-4">
-                <img
+              <div className="relative pt-[150%] mb-4">
+                <Image
                   src={book.volumeInfo.imageLinks?.thumbnail || '/book-placeholder.png'}
                   alt={book.volumeInfo.title}
-                  className="absolute top-0 left-0 w-full h-full object-contain rounded max-h-[180px]"
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                  className="absolute inset-0 object-cover rounded"
+                  priority={false}
                 />
               </div>
               <h3 className="font-medium text-lg mb-2 line-clamp-2">

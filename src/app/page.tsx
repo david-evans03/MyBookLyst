@@ -22,20 +22,12 @@ export default function Home() {
 
             <div className="flex items-center gap-4">
               {!user && (
-                <>
-                  <Link 
-                    href="/auth"
-                    className="text-cyan-200 hover:text-cyan-400 transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                  <Link 
-                    href="/auth"
-                    className="bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 px-6 py-2 rounded-lg transition-all duration-300 backdrop-blur-sm"
-                  >
-                    Get Started
-                  </Link>
-                </>
+                <Link 
+                  href="/auth"
+                  className="bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 px-6 py-2 rounded-lg transition-all duration-300 backdrop-blur-sm"
+                >
+                  Sign in
+                </Link>
               )}
               {user && (
                 <Link 
@@ -59,18 +51,13 @@ export default function Home() {
           <p className="text-xl md:text-2xl mb-12 text-gray-400">
             Your personal book collection, beautifully organized and tracked in one place.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link 
               href={user ? "/books" : "/auth"}
-              className="btn-primary bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 px-8 py-3 rounded-lg text-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur-sm"
+              className="btn-primary bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 px-12 py-4 rounded-lg text-xl font-medium transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-sm group"
             >
-              Get Started <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link 
-              href="/search"
-              className="bg-gray-800/40 hover:bg-gray-800/60 text-gray-300 px-8 py-3 rounded-lg text-lg font-medium transition-all duration-300 backdrop-blur-sm"
-            >
-              Explore Books
+              Start Your Lyst 
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -91,7 +78,7 @@ export default function Home() {
             <Users className="w-12 h-12 text-cyan-300 mb-4" />
             <h3 className="text-2xl font-bold mb-4 text-cyan-200">Connect with Readers</h3>
             <p className="text-gray-400">
-              Join a community of book lovers, share recommendations, and discover new reads.
+              Coming Soon...
             </p>
           </div>
           
@@ -99,7 +86,7 @@ export default function Home() {
             <Star className="w-12 h-12 text-cyan-300 mb-4" />
             <h3 className="text-2xl font-bold mb-4 text-cyan-200">Rate & Review</h3>
             <p className="text-gray-400">
-              Share your thoughts on books, rate your reads, and help others find their next favorite book.
+              Coming Soon...
             </p>
           </div>
         </div>
