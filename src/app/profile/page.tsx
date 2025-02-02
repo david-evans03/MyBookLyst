@@ -277,20 +277,20 @@ const ProfilePage = () => {
         </div>
         
         {/* Legend */}
-        <div className="flex justify-center gap-6 mt-6">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 mt-6 px-4">
+          <div className="flex items-center gap-2 min-w-[120px]">
             <div className="w-3 h-3 rounded-full bg-[#22D3EE]" />
             <span className="text-sm text-gray-300">Reading</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-[120px]">
             <div className="w-3 h-3 rounded-full bg-[#34D399]" />
             <span className="text-sm text-gray-300">Completed</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-[120px]">
             <div className="w-3 h-3 rounded-full bg-[#F472B6]" />
             <span className="text-sm text-gray-300">Plan to Read</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-[120px]">
             <div className="w-3 h-3 rounded-full bg-[#EF4444]" />
             <span className="text-sm text-gray-300">Dropped</span>
           </div>

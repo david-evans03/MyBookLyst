@@ -22,20 +22,12 @@ export default function Home() {
 
             <div className="flex items-center gap-4">
               {!user && (
-                <>
-                  <Link 
-                    href="/auth"
-                    className="text-cyan-200 hover:text-cyan-400 transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                  <Link 
-                    href="/auth"
-                    className="bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 px-6 py-2 rounded-lg transition-all duration-300 backdrop-blur-sm"
-                  >
-                    Get Started
-                  </Link>
-                </>
+                <Link 
+                  href="/auth"
+                  className="bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-200 px-6 py-2 rounded-lg transition-all duration-300 backdrop-blur-sm"
+                >
+                  Sign in
+                </Link>
               )}
               {user && (
                 <Link 

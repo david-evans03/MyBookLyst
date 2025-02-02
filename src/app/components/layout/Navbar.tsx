@@ -83,6 +83,13 @@ const Navbar = () => {
                   >
                     Profile
                   </Link>
+                  <Link
+                    href="/settings"
+                    className="block px-4 py-2 text-gray-200 hover:bg-cyan-400/20 transition-colors"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Settings
+                  </Link>
                   <button
                     onClick={handleSignOut}
                     className="w-full text-left px-4 py-2 text-red-200 hover:bg-red-400/20 transition-colors flex items-center gap-3"
