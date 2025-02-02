@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useRef, MouseEvent } from 'react';
-import { Book } from '@/lib/types';
+import { Book, BookStatus } from '@/lib/types';
 import { Star, X } from 'lucide-react';
 import RatingPopup from './RatingPopup';
 import ProgressPopup from './ProgressPopup';
+import Image from 'next/image';
 
 interface BookListProps {
   books: Book[];
-  onStatusChange: (bookId: string, newStatus: string) => void;
+  onStatusChange: (bookId: string, newStatus: BookStatus) => void;
   onRatingChange: (bookId: string, rating: number) => void;
   onProgressChange: (bookId: string, currentPage: number, totalPages: number) => void;
   onDeleteBook: (bookId: string) => void;
@@ -148,10 +149,12 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
               <tr key={book.id} className="border-b border-gray-700/50 hover:bg-gray-800/40 transition-all duration-300 group">
                 <td className="px-6 py-4 text-gray-300">{index + 1}</td>
                 <td className="px-6 py-4">
-                  <img
+                  <Image
                     src={book.imageUrl || '/book-placeholder.png'}
                     alt={book.title}
-                    className="w-16 h-24 object-cover rounded shadow-lg"
+                    width={64}
+                    height={96}
+                    className="object-cover rounded shadow-lg"
                   />
                 </td>
                 <td className="px-6 py-4">
@@ -176,9 +179,8 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
                   
                   <select
                     value={book.status}
-                    onChange={(e) => onStatusChange(book.id!, e.target.value)}
-                    className="w-full min-w-[140px] p-2 text-sm rounded bg-gray-800/60 border-gray-700 
-                      text-gray-200 backdrop-blur-sm transition-all duration-300
+                    onChange={(e) => onStatusChange(book.id, e.target.value as BookStatus)}
+                    className="bg-gray-800/40 text-gray-300 rounded px-3 py-1.5 text-sm border border-gray-700/50
                       focus:ring-cyan-400/30 focus:border-cyan-400/30 hover:bg-gray-700/60"
                   >
                     <option value="reading">Reading</option>

@@ -6,8 +6,7 @@
     "my-book-app-5ad8c": {
       "hosting": {
         "staging": [
-          "my-book-app-5ad8c",
-          "staging-my-book-app"
+          "staging.mybooklyst.com"
         ]
       }
     }

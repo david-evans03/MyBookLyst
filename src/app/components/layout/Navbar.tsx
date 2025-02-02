@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Search } from 'lucide-react';
+import Image from 'next/image';
 
 const Navbar = () => {
   const { user } = useAuth();
@@ -37,9 +38,11 @@ const Navbar = () => {
               href="/profile" 
               className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-700/50 hover:border-cyan-400/50 transition-all duration-300"
             >
-              <img
-                src={user.photoURL || 'https://via.placeholder.com/40?text=U'}
+              <Image
+                src={user.photoURL || '/default-avatar.png'}
                 alt="Profile"
+                width={32}
+                height={32}
                 className="w-full h-full object-cover"
               />
             </Link>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { Book } from '@/lib/types';
+import { Book, BookStatus } from '@/lib/types';
 import { db } from '@/lib/firebase/firebase';
 import { collection, query, where, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import {
@@ -36,13 +36,7 @@ const ProfilePage = () => {
   const [monthlyReadingData, setMonthlyReadingData] = useState<MonthlyReading[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<StatusDistribution[]>([]);
 
-  useEffect(() => {
-    if (user) {
-      loadBooks();
-    }
-  }, [user]);
-
-  const loadBooks = async () => {
+  const loadBooks = useCallback(async () => {
     if (!user) return;
 
     const q = query(collection(db, 'books'), where('userId', '==', user.uid));
@@ -54,7 +48,13 @@ const ProfilePage = () => {
     setBooks(booksList);
     calculateMonthlyReading(booksList);
     calculateStatusDistribution(booksList);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadBooks();
+    }
+  }, [user, loadBooks]);
 
   const calculateMonthlyReading = (books: Book[]) => {
     const monthlyData: { [key: string]: number } = {};
@@ -83,21 +83,15 @@ const ProfilePage = () => {
   };
 
   const calculateStatusDistribution = (books: Book[]) => {
-    // Add console.log to debug
-    console.log('Books received:', books);
-
     const total = books.length;
-    if (total === 0) return; // Prevent division by zero
+    if (total === 0) return;
 
     const counts = {
       reading: books.filter(book => book.status === 'reading').length,
       completed: books.filter(book => book.status === 'completed').length,
       'plan-to-read': books.filter(book => book.status === 'plan-to-read').length,
       dropped: books.filter(book => book.status === 'dropped').length,
-    };
-
-    // Add console.log to debug counts
-    console.log('Status counts:', counts);
+    } as const;
 
     const distribution = [{
       name: 'Status',
@@ -106,9 +100,6 @@ const ProfilePage = () => {
       'plan-to-read': (counts['plan-to-read'] / total) * 100,
       dropped: (counts.dropped / total) * 100,
     }];
-
-    // Add console.log to debug final distribution
-    console.log('Status distribution:', distribution);
 
     setStatusDistribution(distribution);
   };
@@ -125,13 +116,13 @@ const ProfilePage = () => {
     return books.filter(book => book.status === 'completed').length;
   };
 
-  const handleStatusChange = async (bookId: string, newStatus: string) => {
+  const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
     try {
       await updateDoc(doc(db, 'books', bookId), {
         status: newStatus,
         updatedAt: new Date().toISOString()
       });
-      loadBooks(); // Reload books after update
+      loadBooks();
     } catch (error) {
       console.error('Error updating book status:', error);
     }

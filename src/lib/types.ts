@@ -14,6 +14,8 @@ export interface GoogleBook {
   };
 }
 
+export type BookStatus = 'reading' | 'completed' | 'plan-to-read' | 'dropped';
+
 export interface Book {
   id: string;
   userId: string;
@@ -23,7 +25,7 @@ export interface Book {
   description?: string;
   thumbnail?: string;
   imageUrl?: string;
-  status: 'reading' | 'completed' | 'plan-to-read' | 'favorites';
+  status: BookStatus;
   rating?: number;
   review?: string;
   startDate?: string;

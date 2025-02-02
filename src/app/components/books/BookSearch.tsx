@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { GoogleBook } from '@/lib/types';
+import Image from 'next/image';
 
 interface BookSearchProps {
   onBookSelect: (book: GoogleBook, status: string) => void;
@@ -70,9 +71,11 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
               className="border rounded-lg p-4 shadow-sm flex flex-col"
             >
               <div className="relative pt-[120%] mb-4">
-                <img
+                <Image
                   src={book.volumeInfo.imageLinks?.thumbnail || '/book-placeholder.png'}
                   alt={book.volumeInfo.title}
+                  width={48}
+                  height={72}
                   className="absolute top-0 left-0 w-full h-full object-contain rounded max-h-[180px]"
                 />
               </div>

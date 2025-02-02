@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function SignInForm() {
   const [email, setEmail] = useState('');
@@ -54,10 +55,12 @@ export default function SignInForm() {
         onClick={() => signInWithGoogle()}
         className="btn w-full bg-white border border-gray-300 hover:bg-gray-50"
       >
-        <img
-          src="https://www.google.com/favicon.ico"
+        <Image
+          src="/google.svg"
           alt="Google"
-          className="w-5 h-5 mr-2"
+          width={20}
+          height={20}
+          className="w-5 h-5"
         />
         Sign in with Google
       </button>

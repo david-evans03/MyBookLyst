@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { Book } from '@/lib/types';
+import type { Book, BookStatus } from '@/lib/types';
 import { db } from '@/lib/firebase/firebase';
 import { collection, query, where, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import dynamic from 'next/dynamic';
@@ -13,13 +13,7 @@ const BooksPage = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      loadBooks();
-    }
-  }, [user]);
-
-  const loadBooks = async () => {
+  const loadBooks = useCallback(async () => {
     if (!user) return;
 
     const q = query(collection(db, 'books'), where('userId', '==', user.uid));
@@ -29,9 +23,15 @@ const BooksPage = () => {
       ...doc.data()
     } as Book));
     setBooks(booksList);
-  };
+  }, [user]);
 
-  const handleStatusChange = async (bookId: string, newStatus: string) => {
+  useEffect(() => {
+    if (user) {
+      loadBooks();
+    }
+  }, [user, loadBooks]);
+
+  const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
     await updateDoc(doc(db, 'books', bookId), { status: newStatus });
     loadBooks();
   };

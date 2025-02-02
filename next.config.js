@@ -11,7 +11,12 @@ const nextConfig = {
         hostname: '*',
         pathname: '/**',
       }
-    ]
+    ],
+    domains: [
+      'books.google.com',
+      'lh3.googleusercontent.com',
+      // Add other domains you're loading images from
+    ],
   }
 }
 
