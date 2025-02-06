@@ -50,7 +50,7 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for books..."
+          placeholder="Add books..."
           className="flex-1 p-2 border rounded"
           onKeyPress={(e) => e.key === 'Enter' && searchBooks()}
         />

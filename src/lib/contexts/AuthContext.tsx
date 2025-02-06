@@ -11,6 +11,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from '../firebase/firebase';
 
 interface AuthContextType {
@@ -60,8 +61,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      console.log('Initiating Google sign-in...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign-in successful:', result.user.email);
+    } catch (error: unknown) {
+      const firebaseError = error as FirebaseError;
+      console.error('Google sign-in error:', firebaseError);
+      if (firebaseError instanceof FirebaseError) {
+        switch (firebaseError.code) {
+          case 'auth/popup-closed-by-user':
+            throw new Error('Sign-in popup was closed before completing.');
+          case 'auth/popup-blocked':
+            throw new Error('Sign-in popup was blocked by the browser.');
+          case 'auth/cancelled-popup-request':
+            throw new Error('Another sign-in popup is already open.');
+          default:
+            throw new Error(`Authentication failed: ${firebaseError.message}`);
+        }
+      }
+      throw error;
+    }
   };
 
   const signOut = async () => {

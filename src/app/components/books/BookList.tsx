@@ -6,6 +6,7 @@ import { Star, X } from 'lucide-react';
 import RatingPopup from './RatingPopup';
 import ProgressPopup from './ProgressPopup';
 import Image from 'next/image';
+import DeleteConfirmationPopup from './DeleteConfirmationPopup';
 
 interface BookListProps {
   books: Book[];
@@ -24,6 +25,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
   const tableRef = useRef<HTMLDivElement>(null);
   const [activeRatingBook, setActiveRatingBook] = useState<string | null>(null);
   const [activeProgressBook, setActiveProgressBook] = useState<string | null>(null);
+  const [bookToDelete, setBookToDelete] = useState<string | null>(null);
 
   const filteredBooks = books.filter(book => {
     if (filter === 'all') return true;
@@ -169,7 +171,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
                 </td>
                 <td className="px-6 py-4 relative">
                   <button
-                    onClick={() => onDeleteBook(book.id!)}
+                    onClick={() => setBookToDelete(book.id!)}
                     className="opacity-0 group-hover:opacity-100 absolute top-0 right-2
                       p-1 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400
                       transition-all duration-300"
@@ -215,6 +217,16 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
             setActiveProgressBook(null);
           }}
           onClose={() => setActiveProgressBook(null)}
+        />
+      )}
+
+      {bookToDelete && (
+        <DeleteConfirmationPopup
+          onConfirm={() => {
+            onDeleteBook(bookToDelete);
+            setBookToDelete(null);
+          }}
+          onClose={() => setBookToDelete(null)}
         />
       )}
     </div>

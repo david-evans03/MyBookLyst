@@ -59,15 +59,12 @@ const BooksPage = () => {
   };
 
   const handleDeleteBook = async (bookId: string) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
-      try {
-        await deleteDoc(doc(db, 'books', bookId));
-        // If you're using real-time updates, the UI will update automatically
-        // Otherwise, you might need to refresh your books list here
-      } catch (error) {
-        console.error('Error deleting book:', error);
-        alert('Failed to delete book');
-      }
+    try {
+      await deleteDoc(doc(db, 'books', bookId));
+      loadBooks(); // Refresh the books list after deletion
+    } catch (error) {
+      console.error('Error deleting book:', error);
+      // You might want to show an error message to the user here
     }
   };
 

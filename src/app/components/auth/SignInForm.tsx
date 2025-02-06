@@ -53,7 +53,7 @@ export default function SignInForm() {
       </form>
       <button
         onClick={() => signInWithGoogle()}
-        className="btn w-full bg-white border border-gray-300 hover:bg-gray-50"
+        className="btn w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 py-2"
       >
         <Image
           src="/google.svg"
