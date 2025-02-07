@@ -6,9 +6,10 @@ import Image from 'next/image';
 
 interface BookSearchProps {
   onBookSelect: (book: GoogleBook, status: string) => void;
+  existingBookIds: Set<string>;
 }
 
-const BookSearch = ({ onBookSelect }: BookSearchProps) => {
+const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<GoogleBook[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,7 +89,7 @@ const BookSearch = ({ onBookSelect }: BookSearchProps) => {
                 {book.volumeInfo.authors?.[0] || 'Unknown Author'}
               </p>
               
-              {addedBooks[book.id] ? (
+              {addedBooks[book.id] || existingBookIds.has(book.id) ? (
                 <select
                   disabled
                   className="w-full p-2 border rounded bg-green-50 text-green-600 cursor-not-allowed"

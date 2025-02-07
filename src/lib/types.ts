@@ -4,11 +4,12 @@ export interface GoogleBook {
     title: string;
     authors?: string[];
     description?: string;
+    pageCount?: number;
     imageLinks?: {
       thumbnail?: string;
+      smallThumbnail?: string;
     };
     publishedDate?: string;
-    pageCount?: number;
     categories?: string[];
     language?: string;
   };
@@ -17,22 +18,19 @@ export interface GoogleBook {
 export type BookStatus = 'reading' | 'completed' | 'plan-to-read' | 'dropped';
 
 export interface Book {
-  id: string;
-  userId: string;
+  id?: string;
   googleBookId: string;
   title: string;
   author: string;
-  description?: string;
-  thumbnail?: string;
-  imageUrl?: string;
+  description: string;
+  imageUrl: string;
+  thumbnail: string;
   status: BookStatus;
-  rating?: number;
-  review?: string;
-  startDate?: string;
-  finishDate?: string;
-  progress?: number;
+  userId: string;
   currentPage?: number;
   totalPages?: number;
+  progress?: number;
+  rating?: number;
   createdAt: string;
   updatedAt: string;
 }

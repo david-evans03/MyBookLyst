@@ -70,7 +70,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
     const rating = book.rating || 0;
     return (
       <button 
-        onClick={() => setActiveRatingBook(book.id)}
+        onClick={() => book.id && setActiveRatingBook(book.id)}
         className="flex items-center gap-2 hover:bg-gray-800/40 p-2 rounded transition-colors"
       >
         <span className="text-cyan-200">{rating}</span>
@@ -86,7 +86,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
 
     return (
       <button
-        onClick={() => setActiveProgressBook(book.id)}
+        onClick={() => book.id && setActiveProgressBook(book.id)}
         className="w-full hover:bg-gray-800/40 p-2 rounded transition-colors"
       >
         <div className="w-full bg-gray-800/60 rounded-full h-2.5">
@@ -96,7 +96,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
           />
         </div>
         <span className="text-xs text-gray-400 mt-1">
-          {currentPage}/{book.totalPages || '?'} pages
+          {currentPage}/{totalPages > 0 ? totalPages : '?'} pages
         </span>
       </button>
     );
@@ -171,7 +171,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
                 </td>
                 <td className="px-6 py-4 relative">
                   <button
-                    onClick={() => setBookToDelete(book.id!)}
+                    onClick={() => book.id && setBookToDelete(book.id)}
                     className="opacity-0 group-hover:opacity-100 absolute top-0 right-2
                       p-1 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400
                       transition-all duration-300"
@@ -181,7 +181,7 @@ const BookList = ({ books, onStatusChange, onRatingChange, onProgressChange, onD
                   
                   <select
                     value={book.status}
-                    onChange={(e) => onStatusChange(book.id, e.target.value as BookStatus)}
+                    onChange={(e) => book.id && onStatusChange(book.id, e.target.value as BookStatus)}
                     className="bg-gray-800/40 text-gray-300 rounded px-3 py-1.5 text-sm border border-gray-700/50
                       focus:ring-cyan-400/30 focus:border-cyan-400/30 hover:bg-gray-700/60"
                   >
