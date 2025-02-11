@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { auth } from '../firebase/firebase';
+import { createOrUpdateUser } from '../firebase/firebaseUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -33,8 +34,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('AuthProvider mounted');
     try {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
         console.log('Auth state changed:', user?.email);
+        if (user) {
+          // Create or update user document in Firestore
+          await createOrUpdateUser({
+            uid: user.uid,
+            email: user.email || '',
+            username: user.displayName || user.email?.split('@')[0] || '',
+            photoURL: user.photoURL || '',
+            hasSeenTutorial: false,
+            notifications: true,
+            privacy: 'public'
+          });
+        }
         setUser(user);
         setLoading(false);
       }, (error) => {
@@ -58,6 +71,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, username: string) => {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(user, { displayName: username });
+    // Create user document in Firestore
+    await createOrUpdateUser({
+      uid: user.uid,
+      email: user.email || '',
+      username: username,
+      photoURL: user.photoURL || '',
+      hasSeenTutorial: false,
+      notifications: true,
+      privacy: 'public'
+    });
   };
 
   const signInWithGoogle = async () => {
@@ -69,6 +92,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Initiating Google sign-in...');
       const result = await signInWithPopup(auth, provider);
       console.log('Google sign-in successful:', result.user.email);
+      
+      // Create or update user document in Firestore
+      await createOrUpdateUser({
+        uid: result.user.uid,
+        email: result.user.email || '',
+        username: result.user.displayName || result.user.email?.split('@')[0] || '',
+        photoURL: result.user.photoURL || '',
+        hasSeenTutorial: false,
+        notifications: true,
+        privacy: 'public'
+      });
     } catch (error: unknown) {
       const firebaseError = error as FirebaseError;
       console.error('Google sign-in error:', firebaseError);

@@ -2,9 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { Book, BookStatus } from '@/lib/types';
-import { db } from '@/lib/firebase/firebase';
-import { collection, query, where, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { Book, UserBook } from '@/lib/types/database';
+import { 
+  getUserBooks, 
+  updateUserBookProgress, 
+  removeUserBook,
+  updateUserBookRating,
+  updateUserBookStatus 
+} from '@/lib/firebase/firebaseUtils';
 import {
   BarChart,
   Bar,
@@ -30,24 +35,20 @@ interface StatusDistribution {
   dropped: number;
 }
 
+type CombinedBook = Book & UserBook;
+
 const ProfilePage = () => {
   const { user } = useAuth();
-  const [books, setBooks] = useState<Book[]>([]);
+  const [books, setBooks] = useState<CombinedBook[]>([]);
   const [monthlyReadingData, setMonthlyReadingData] = useState<MonthlyReading[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<StatusDistribution[]>([]);
 
   const loadBooks = useCallback(async () => {
     if (!user) return;
-
-    const q = query(collection(db, 'books'), where('userId', '==', user.uid));
-    const querySnapshot = await getDocs(q);
-    const booksList = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Book));
-    setBooks(booksList);
-    calculateMonthlyReading(booksList);
-    calculateStatusDistribution(booksList);
+    const userBooks = await getUserBooks(user.uid);
+    setBooks(userBooks);
+    calculateMonthlyReading(userBooks);
+    calculateStatusDistribution(userBooks);
   }, [user]);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ const ProfilePage = () => {
     }
   }, [user, loadBooks]);
 
-  const calculateMonthlyReading = (books: Book[]) => {
+  const calculateMonthlyReading = (books: CombinedBook[]) => {
     const monthlyData: { [key: string]: number } = {};
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
@@ -82,7 +83,7 @@ const ProfilePage = () => {
     setMonthlyReadingData(chartData);
   };
 
-  const calculateStatusDistribution = (books: Book[]) => {
+  const calculateStatusDistribution = (books: CombinedBook[]) => {
     const total = books.length;
     if (total === 0) return;
 
@@ -116,37 +117,30 @@ const ProfilePage = () => {
     return books.filter(book => book.status === 'completed').length;
   };
 
-  const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
+  const handleStatusChange = async (bookId: string, newStatus: UserBook['status']) => {
+    if (!user) return;
     try {
-      await updateDoc(doc(db, 'books', bookId), {
-        status: newStatus,
-        updatedAt: new Date().toISOString()
-      });
-      loadBooks();
+      await updateUserBookStatus(user.uid, bookId, newStatus);
+      await loadBooks();
     } catch (error) {
       console.error('Error updating book status:', error);
     }
   };
 
   const handleRatingChange = async (bookId: string, rating: number) => {
+    if (!user) return;
     try {
-      await updateDoc(doc(db, 'books', bookId), {
-        rating,
-        updatedAt: new Date().toISOString()
-      });
-      loadBooks();
+      await updateUserBookRating(user.uid, bookId, rating);
+      await loadBooks();
     } catch (error) {
       console.error('Error updating book rating:', error);
     }
   };
 
   const handleProgressChange = async (bookId: string, currentPage: number, totalPages: number) => {
+    if (!user) return;
     try {
-      await updateDoc(doc(db, 'books', bookId), {
-        currentPage,
-        totalPages,
-        updatedAt: new Date().toISOString()
-      });
+      await updateUserBookProgress(user.uid, bookId, currentPage);
       loadBooks();
     } catch (error) {
       console.error('Error updating book progress:', error);
@@ -154,13 +148,12 @@ const ProfilePage = () => {
   };
 
   const handleDeleteBook = async (bookId: string) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
-      try {
-        await deleteDoc(doc(db, 'books', bookId));
-        loadBooks();
-      } catch (error) {
-        console.error('Error deleting book:', error);
-      }
+    if (!user) return;
+    try {
+      await removeUserBook(user.uid, bookId);
+      loadBooks();
+    } catch (error) {
+      console.error('Error deleting book:', error);
     }
   };
 

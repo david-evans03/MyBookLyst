@@ -2,10 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import type { Book, BookStatus } from '@/lib/types';
-import { db } from '@/lib/firebase/firebase';
-import { collection, query, where, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { Book, BookStatus, CombinedBook } from '@/lib/types/database';
 import dynamic from 'next/dynamic';
+import { 
+  getUserBooks, 
+  updateUserBookProgress, 
+  removeUserBook,
+  updateUserBookRating,
+  updateUserBookStatus 
+} from '@/lib/firebase/firebaseUtils';
 
 const BookList = dynamic(() => import('@/app/components/books/BookList'), { 
   ssr: false,
@@ -17,19 +22,13 @@ const BookList = dynamic(() => import('@/app/components/books/BookList'), {
 });
 
 const BooksPage = () => {
-  const [books, setBooks] = useState<Book[]>([]);
+  const [books, setBooks] = useState<CombinedBook[]>([]);
   const { user } = useAuth();
 
   const loadBooks = useCallback(async () => {
     if (!user) return;
-
-    const q = query(collection(db, 'books'), where('userId', '==', user.uid));
-    const querySnapshot = await getDocs(q);
-    const booksList = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Book));
-    setBooks(booksList);
+    const userBooks = await getUserBooks(user.uid);
+    setBooks(userBooks);
   }, [user]);
 
   useEffect(() => {
@@ -39,32 +38,42 @@ const BooksPage = () => {
   }, [user, loadBooks]);
 
   const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
-    await updateDoc(doc(db, 'books', bookId), { status: newStatus });
-    loadBooks();
+    if (!user) return;
+    try {
+      await updateUserBookStatus(user.uid, bookId, newStatus);
+      await loadBooks(); // Reload books to show updated status
+    } catch (error) {
+      console.error('Error updating book status:', error);
+    }
   };
 
   const handleRatingChange = async (bookId: string, rating: number) => {
-    await updateDoc(doc(db, 'books', bookId), { rating });
-    loadBooks();
+    if (!user) return;
+    try {
+      await updateUserBookRating(user.uid, bookId, rating);
+      await loadBooks(); // Reload books to show updated rating
+    } catch (error) {
+      console.error('Error updating book rating:', error);
+    }
   };
 
   const handleProgressChange = async (bookId: string, currentPage: number, totalPages: number) => {
-    const progress = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
-    await updateDoc(doc(db, 'books', bookId), { 
-      currentPage,
-      totalPages,
-      progress
-    });
-    loadBooks();
+    if (!user) return;
+    try {
+      await updateUserBookProgress(user.uid, bookId, currentPage);
+      loadBooks();
+    } catch (error) {
+      console.error('Error updating book progress:', error);
+    }
   };
 
   const handleDeleteBook = async (bookId: string) => {
+    if (!user) return;
     try {
-      await deleteDoc(doc(db, 'books', bookId));
-      loadBooks(); // Refresh the books list after deletion
+      await removeUserBook(user.uid, bookId);
+      loadBooks();
     } catch (error) {
       console.error('Error deleting book:', error);
-      // You might want to show an error message to the user here
     }
   };
 

@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  distDir: 'out',
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -14,9 +13,10 @@ const nextConfig = {
     domains: [
       'books.google.com',
       'lh3.googleusercontent.com',
-      // Add other domains you're loading images from
     ],
-  }
+  },
+  trailingSlash: false,
+  skipTrailingSlashRedirect: true
 }
 
 module.exports = nextConfig
