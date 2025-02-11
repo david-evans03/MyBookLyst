@@ -62,21 +62,19 @@
 }
 
 :root {
-  --foreground-rgb: 229, 229, 229;
-  --background-rgb: 18, 18, 20;
-  --accent-warm: 255, 198, 109;
-  --accent-cool: 103, 232, 249;
-  --overlay: rgba(0, 0, 0, 0.7);
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-  
-background-size: cover;
-background-attachment: fixed;
-background-position: center;
-min-height: 100vh;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(var(--background-end-rgb))
+  )
+  rgb(var(--background-start-rgb));
 }
 
 .container {
@@ -213,7 +211,7 @@ min-height: 100vh;
 }
 
 .title-glow {
-  text-shadow: 0 0 20px rgba(255, 198, 109, 0.4);
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
 }
 
 /* Add to your existing styles */

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { GoogleBook, UserBook } from '@/lib/types/database';
 import Image from 'next/image';
+import { collection, query as firestoreQuery, where, getDocs, DocumentData } from 'firebase/firestore';
+import { db } from '@/lib/firebase/firebase';
 
 interface BookSearchProps {
   onBookSelect: (book: GoogleBook, status: UserBook['status']) => void;
@@ -10,29 +12,43 @@ interface BookSearchProps {
 }
 
 const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
-  const [query, setQuery] = useState('');
+  const [searchText, setSearchText] = useState('');
   const [books, setBooks] = useState<GoogleBook[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addedBooks, setAddedBooks] = useState<{ [key: string]: boolean }>({});
 
   const searchBooks = async () => {
-    if (!query.trim()) return;
+    if (!searchText.trim()) return;
     
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `/api/books/search?q=${encodeURIComponent(query)}`
+      // Search in Firebase directly
+      const booksRef = collection(db, 'books');
+      const searchQuery = firestoreQuery(booksRef, 
+        where('title', '>=', searchText.toLowerCase()),
+        where('title', '<=', searchText.toLowerCase() + '\uf8ff')
       );
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to search books');
-      }
+      const querySnapshot = await getDocs(searchQuery);
+      const searchResults = querySnapshot.docs.map(doc => {
+        const data = doc.data() as DocumentData;
+        return {
+          id: doc.id,
+          volumeInfo: {
+            title: data.title as string,
+            authors: [data.author as string],
+            description: data.description as string,
+            imageLinks: {
+              thumbnail: data.thumbnail as string
+            },
+            pageCount: data.totalPages as number
+          }
+        };
+      });
       
-      const data = await response.json();
-      setBooks(data.books || []);
+      setBooks(searchResults);
     } catch (error) {
       console.error('Error searching books:', error);
       setError(error instanceof Error ? error.message : 'Failed to search books');
@@ -59,8 +75,8 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
       <div className="flex gap-2 mb-8">
         <input
           type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
           placeholder="Add books..."
           className="flex-1 p-2 border rounded"
           onKeyPress={(e) => e.key === 'Enter' && searchBooks()}
