@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from 'react';
-import { GoogleBook } from '@/lib/types';
+import { GoogleBook, UserBook } from '@/lib/types/database';
 import Image from 'next/image';
 
 interface BookSearchProps {
-  onBookSelect: (book: GoogleBook, status: string) => void;
+  onBookSelect: (book: GoogleBook, status: UserBook['status']) => void;
   existingBookIds: Set<string>;
 }
 
@@ -13,31 +13,41 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<GoogleBook[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [addedBooks, setAddedBooks] = useState<{ [key: string]: boolean }>({});
 
   const searchBooks = async () => {
     if (!query.trim()) return;
     
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`
+        `/api/books/search?q=${encodeURIComponent(query)}`
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to search books');
+      }
+      
       const data = await response.json();
-      setBooks(data.items || []);
+      setBooks(data.books || []);
     } catch (error) {
       console.error('Error searching books:', error);
+      setError(error instanceof Error ? error.message : 'Failed to search books');
+      setBooks([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusSelect = (book: GoogleBook, status: string) => {
+  const handleStatusSelect = (book: GoogleBook, status: UserBook['status']) => {
     onBookSelect(book, status);
     setAddedBooks(prev => ({ ...prev, [book.id]: true }));
   };
 
-  const statusOptions = [
+  const statusOptions: { value: UserBook['status']; label: string }[] = [
     { value: 'reading', label: 'Currently Reading' },
     { value: 'completed', label: 'Completed' },
     { value: 'plan-to-read', label: 'Plan to Read' },
@@ -63,6 +73,12 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
           {loading ? 'Searching...' : 'Search'}
         </button>
       </div>
+
+      {error && (
+        <div className="text-red-500 mb-4">
+          {error}
+        </div>
+      )}
 
       {books.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -99,7 +115,7 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
                 </select>
               ) : (
                 <select
-                  onChange={(e) => handleStatusSelect(book, e.target.value)}
+                  onChange={(e) => handleStatusSelect(book, e.target.value as UserBook['status'])}
                   className="w-full p-2 border rounded"
                   defaultValue=""
                 >

@@ -1,22 +1,40 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authenticated
+    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Helper function to check if user is accessing their own data
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Add this function to validate OAuth tokens
-    function isValidUser() {
-      // Remove email verification requirement for testing
-      return request.auth != null && request.auth.token.email != null;
-      // Once verified, you can add back:
-      // && request.auth.token.email_verified == true
+    // Books collection - any authenticated user can read, but write needs validation
+    match /books/{bookId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() 
+        && request.resource.data.keys().hasAll(['id', 'title', 'author', 'totalPages'])
+        && request.resource.data.id == bookId;
+    }
+
+    // UserBooks collection - more specific rules
+    match /userBooks/{userBookId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() 
+        && request.resource.data.userId == request.auth.uid
+        && userBookId == request.resource.data.userId + '_' + request.resource.data.bookId;
+      allow update: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() 
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Users collection - basic rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
     }
 
     // Rules for booklist collection
@@ -44,25 +62,6 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
-    // Rules for user profiles
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
-
-      // Add validation for the user document structure
-      function isValidUserData() {
-        let data = request.resource.data;
-        return 
-          data.displayName is string &&
-          data.email is string &&
-          data.theme in ['light', 'dark', 'system'] &&
-          data.notifications is bool &&
-          data.privacy in ['public', 'friends', 'private'] &&
-          data.updatedAt is string &&
-          (data.uid == request.auth.uid);
-      }
-    }
-
     // Rules for pending-books collection
     match /pending-books/{document=**} {
       allow read: if isAuthenticated();
@@ -84,21 +83,9 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
-    // Books collection rules
-    match /books/{bookId} {
-      allow read: if request.auth != null 
-        && isValidUser() 
-        && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null 
-        && isValidUser() 
-        && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    // Admin function
+    function isAdmin() {
+      return request.auth.uid in ['KnyjSMErQ5SQBIkreNblM9tG7Dk1'];
     }
-  }
-
-  // Add admin function
-  function isAdmin() {
-    return request.auth.uid in ['KnyjSMErQ5SQBIkreNblM9tG7Dk1'];
   }
 }
