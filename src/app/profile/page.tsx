@@ -3,7 +3,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Book, UserBook } from '@/lib/types/database';
-import { getUserBooks, updateUserBookProgress, removeUserBook } from '@/lib/firebase/firebaseUtils';
+import { 
+  getUserBooks, 
+  updateUserBookProgress, 
+  removeUserBook,
+  updateUserBookRating,
+  updateUserBookStatus 
+} from '@/lib/firebase/firebaseUtils';
 import {
   BarChart,
   Bar,
@@ -114,23 +120,8 @@ const ProfilePage = () => {
   const handleStatusChange = async (bookId: string, newStatus: UserBook['status']) => {
     if (!user) return;
     try {
-      const response = await fetch('/api/books/update-status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          bookId,
-          status: newStatus
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update book status');
-      }
-
-      loadBooks();
+      await updateUserBookStatus(user.uid, bookId, newStatus);
+      await loadBooks();
     } catch (error) {
       console.error('Error updating book status:', error);
     }
@@ -139,23 +130,8 @@ const ProfilePage = () => {
   const handleRatingChange = async (bookId: string, rating: number) => {
     if (!user) return;
     try {
-      const response = await fetch('/api/books/update-rating', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          bookId,
-          rating
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update book rating');
-      }
-
-      loadBooks();
+      await updateUserBookRating(user.uid, bookId, rating);
+      await loadBooks();
     } catch (error) {
       console.error('Error updating book rating:', error);
     }

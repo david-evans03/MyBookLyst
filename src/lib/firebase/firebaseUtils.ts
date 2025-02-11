@@ -266,4 +266,38 @@ export async function updateUserBookRating(userId: string, bookId: string, ratin
     });
     throw error;
   }
+}
+
+export async function updateUserBookStatus(userId: string, bookId: string, status: UserBook['status']) {
+  try {
+    console.log('[updateUserBookStatus] Starting to update book status:', {
+      userId,
+      bookId,
+      status
+    });
+    
+    const userBookId = `${userId}_${bookId}`;
+    const userBookRef = doc(db, 'userBooks', userBookId);
+    const userBookDoc = await getDoc(userBookRef);
+    
+    if (!userBookDoc.exists()) {
+      throw new Error('Book not found in user\'s library');
+    }
+    
+    await setDoc(userBookRef, {
+      status,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    
+    console.log('[updateUserBookStatus] Successfully updated book status');
+  } catch (error: any) {
+    console.error('[updateUserBookStatus] Error:', {
+      code: error.code,
+      name: error.name,
+      message: error.message,
+      path: `userBooks/${userId}_${bookId}`,
+      userId
+    });
+    throw error;
+  }
 } 

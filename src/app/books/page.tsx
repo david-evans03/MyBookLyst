@@ -8,7 +8,8 @@ import {
   getUserBooks, 
   updateUserBookProgress, 
   removeUserBook,
-  updateUserBookRating 
+  updateUserBookRating,
+  updateUserBookStatus 
 } from '@/lib/firebase/firebaseUtils';
 
 const BookList = dynamic(() => import('@/app/components/books/BookList'), { 
@@ -39,23 +40,8 @@ const BooksPage = () => {
   const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
     if (!user) return;
     try {
-      const response = await fetch('/api/books/update-status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          bookId,
-          status: newStatus
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update book status');
-      }
-
-      loadBooks();
+      await updateUserBookStatus(user.uid, bookId, newStatus);
+      await loadBooks(); // Reload books to show updated status
     } catch (error) {
       console.error('Error updating book status:', error);
     }
