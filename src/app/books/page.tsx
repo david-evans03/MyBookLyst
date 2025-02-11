@@ -4,7 +4,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { Book, BookStatus, CombinedBook } from '@/lib/types/database';
 import dynamic from 'next/dynamic';
-import { getUserBooks, updateUserBookProgress, removeUserBook } from '@/lib/firebase/firebaseUtils';
+import { 
+  getUserBooks, 
+  updateUserBookProgress, 
+  removeUserBook,
+  updateUserBookRating 
+} from '@/lib/firebase/firebaseUtils';
 
 const BookList = dynamic(() => import('@/app/components/books/BookList'), { 
   ssr: false,
@@ -59,23 +64,8 @@ const BooksPage = () => {
   const handleRatingChange = async (bookId: string, rating: number) => {
     if (!user) return;
     try {
-      const response = await fetch('/api/books/update-rating', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          bookId,
-          rating
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update book rating');
-      }
-
-      loadBooks();
+      await updateUserBookRating(user.uid, bookId, rating);
+      await loadBooks(); // Reload books to show updated rating
     } catch (error) {
       console.error('Error updating book rating:', error);
     }

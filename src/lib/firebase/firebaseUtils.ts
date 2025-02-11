@@ -232,4 +232,38 @@ export async function getRecentlyUpdatedBooks(userId: string, maxResults: number
   );
   
   return books.filter((book): book is (Book & UserBook) => book !== null);
+}
+
+export async function updateUserBookRating(userId: string, bookId: string, rating: number) {
+  try {
+    console.log('[updateUserBookRating] Starting to update book rating:', {
+      userId,
+      bookId,
+      rating
+    });
+    
+    const userBookId = `${userId}_${bookId}`;
+    const userBookRef = doc(db, 'userBooks', userBookId);
+    const userBookDoc = await getDoc(userBookRef);
+    
+    if (!userBookDoc.exists()) {
+      throw new Error('Book not found in user\'s library');
+    }
+    
+    await setDoc(userBookRef, {
+      rating,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    
+    console.log('[updateUserBookRating] Successfully updated book rating');
+  } catch (error: any) {
+    console.error('[updateUserBookRating] Error:', {
+      code: error.code,
+      name: error.name,
+      message: error.message,
+      path: `userBooks/${userId}_${bookId}`,
+      userId
+    });
+    throw error;
+  }
 } 
