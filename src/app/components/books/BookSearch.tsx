@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { GoogleBook, UserBook } from '@/lib/types/database';
 import Image from 'next/image';
-import { collection, query as firestoreQuery, where, getDocs, DocumentData } from 'firebase/firestore';
-import { db } from '@/lib/firebase/firebase';
 
 interface BookSearchProps {
   onBookSelect: (book: GoogleBook, status: UserBook['status']) => void;
@@ -24,31 +22,29 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
     setLoading(true);
     setError(null);
     try {
-      // Search in Firebase directly
-      const booksRef = collection(db, 'books');
-      const searchQuery = firestoreQuery(booksRef, 
-        where('title', '>=', searchText.toLowerCase()),
-        where('title', '<=', searchText.toLowerCase() + '\uf8ff')
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchText)}&maxResults=12`
       );
       
-      const querySnapshot = await getDocs(searchQuery);
-      const searchResults = querySnapshot.docs.map(doc => {
-        const data = doc.data() as DocumentData;
-        return {
-          id: doc.id,
-          volumeInfo: {
-            title: data.title as string,
-            authors: [data.author as string],
-            description: data.description as string,
-            imageLinks: {
-              thumbnail: data.thumbnail as string
-            },
-            pageCount: data.totalPages as number
-          }
-        };
-      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch from Google Books API');
+      }
       
-      setBooks(searchResults);
+      const data = await response.json();
+      const formattedBooks = data.items?.map((item: any) => ({
+        id: item.id,
+        volumeInfo: {
+          title: item.volumeInfo.title,
+          authors: item.volumeInfo.authors || ['Unknown Author'],
+          description: item.volumeInfo.description || '',
+          imageLinks: {
+            thumbnail: item.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || '/book-placeholder.png'
+          },
+          pageCount: item.volumeInfo.pageCount || 0
+        }
+      })) || [];
+      
+      setBooks(formattedBooks);
     } catch (error) {
       console.error('Error searching books:', error);
       setError(error instanceof Error ? error.message : 'Failed to search books');
@@ -77,13 +73,13 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
           type="text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          placeholder="Add books..."
-          className="flex-1 p-2 border rounded"
+          placeholder="Search for books..."
+          className="flex-1 p-2 rounded-md bg-gray-800/60 border border-gray-700 text-gray-200 focus:border-cyan-400/30 focus:ring focus:ring-cyan-400/20"
           onKeyPress={(e) => e.key === 'Enter' && searchBooks()}
         />
         <button
           onClick={searchBooks}
-          className="btn btn-primary"
+          className="px-4 py-2 bg-cyan-400/20 text-cyan-200 rounded-md hover:bg-cyan-400/30 transition-all duration-300 disabled:opacity-50"
           disabled={loading}
         >
           {loading ? 'Searching...' : 'Search'}
@@ -91,7 +87,7 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
       </div>
 
       {error && (
-        <div className="text-red-500 mb-4">
+        <div className="text-red-400 mb-4">
           {error}
         </div>
       )}
@@ -117,14 +113,14 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
               <h3 className="font-medium text-lg mb-2 line-clamp-2">
                 {book.volumeInfo.title}
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-400 mb-4">
                 {book.volumeInfo.authors?.[0] || 'Unknown Author'}
               </p>
               
               {addedBooks[book.id] || existingBookIds.has(book.id) ? (
                 <select
                   disabled
-                  className="w-full p-2 border rounded bg-green-50 text-green-600 cursor-not-allowed"
+                  className="w-full p-2 rounded-md bg-green-900/20 text-green-400 border border-green-500/30 cursor-not-allowed"
                   value="added"
                 >
                   <option value="added">Added to Lyst!</option>
@@ -132,7 +128,7 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
               ) : (
                 <select
                   onChange={(e) => handleStatusSelect(book, e.target.value as UserBook['status'])}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 rounded-md bg-gray-800/60 border border-gray-700 text-gray-200 focus:border-cyan-400/30 focus:ring focus:ring-cyan-400/20"
                   defaultValue=""
                 >
                   <option value="" disabled>Add to My Lyst</option>
