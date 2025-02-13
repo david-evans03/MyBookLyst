@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { createOrUpdateUser } from '@/lib/firebase/firebaseUtils';
+import { createOrUpdateUser, getUser } from '@/lib/firebase/firebaseUtils';
 import { Search, BookOpen, User2 } from 'lucide-react';
 
 interface OnboardingSlide {
@@ -35,8 +35,40 @@ const slides: OnboardingSlide[] = [
 
 const OnboardingTutorial = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const checkTutorialStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const userData = await getUser(user.uid);
+        console.log('Tutorial status check:', { 
+          userId: user.uid, 
+          hasSeenTutorial: userData?.hasSeenTutorial 
+        });
+        
+        // If hasSeenTutorial is undefined (new user), set it to false
+        if (userData && userData.hasSeenTutorial === undefined) {
+          await createOrUpdateUser({
+            ...userData,
+            uid: user.uid,
+            hasSeenTutorial: false
+          });
+          setIsVisible(true);
+        }
+        // If hasSeenTutorial is false, show the tutorial
+        else if (userData && userData.hasSeenTutorial === false) {
+          setIsVisible(true);
+        }
+      } catch (error) {
+        console.error('Error checking tutorial status:', error);
+      }
+    };
+
+    checkTutorialStatus();
+  }, [user]);
 
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
@@ -47,12 +79,23 @@ const OnboardingTutorial = () => {
   };
 
   const handleClose = async () => {
-    setIsVisible(false);
-    if (user) {
+    if (!user) return;
+
+    try {
+      // Get current user data first
+      const currentUserData = await getUser(user.uid);
+      if (!currentUserData) return;
+
+      // Update user data in Firebase, preserving existing fields
       await createOrUpdateUser({
+        ...currentUserData,
         uid: user.uid,
         hasSeenTutorial: true
       });
+      
+      setIsVisible(false);
+    } catch (error) {
+      console.error('Error updating tutorial status:', error);
     }
   };
 
