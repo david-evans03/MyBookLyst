@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { auth } from '../firebase/firebase';
-import { createOrUpdateUser } from '../firebase/firebaseUtils';
+import { createOrUpdateUser, getUser } from '../firebase/firebaseUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -37,15 +37,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         console.log('Auth state changed:', user?.email);
         if (user) {
+          // Get existing user data first
+          const existingUserData = await getUser(user.uid);
+          
           // Create or update user document in Firestore
           await createOrUpdateUser({
+            ...existingUserData, // Spread existing data to preserve it
             uid: user.uid,
             email: user.email || '',
             username: user.displayName || user.email?.split('@')[0] || '',
             photoURL: user.photoURL || '',
-            hasSeenTutorial: false,
-            notifications: true,
-            privacy: 'public'
+            // Only set these fields if user doesn't exist yet
+            ...(existingUserData ? {} : {
+              hasSeenTutorial: false,
+              notifications: true,
+              privacy: 'public'
+            })
           });
         }
         setUser(user);
@@ -93,21 +100,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await signInWithPopup(auth, provider);
       console.log('Google sign-in successful:', result.user.email);
       
+      // Get existing user data first
+      const existingUserData = await getUser(result.user.uid);
+      
       // Create or update user document in Firestore
       await createOrUpdateUser({
+        ...existingUserData, // Spread existing data to preserve it
         uid: result.user.uid,
         email: result.user.email || '',
         username: result.user.displayName || result.user.email?.split('@')[0] || '',
         photoURL: result.user.photoURL || '',
-        hasSeenTutorial: false,
-        notifications: true,
-        privacy: 'public'
+        // Only set these fields if user doesn't exist yet
+        ...(existingUserData ? {} : {
+          hasSeenTutorial: false,
+          notifications: true,
+          privacy: 'public'
+        })
       });
     } catch (error: unknown) {
-      const firebaseError = error as FirebaseError;
-      console.error('Google sign-in error:', firebaseError);
-      if (firebaseError instanceof FirebaseError) {
-        switch (firebaseError.code) {
+      console.error('Google sign-in error:', error);
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
           case 'auth/popup-closed-by-user':
             throw new Error('Sign-in popup was closed before completing.');
           case 'auth/popup-blocked':
@@ -115,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           case 'auth/cancelled-popup-request':
             throw new Error('Another sign-in popup is already open.');
           default:
-            throw new Error(`Authentication failed: ${firebaseError.message}`);
+            throw error;
         }
       }
       throw error;
@@ -123,12 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    try {
-      await firebaseSignOut(auth);
-    } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
-    }
+    await firebaseSignOut(auth);
   };
 
   const value = {

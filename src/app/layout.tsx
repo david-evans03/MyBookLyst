@@ -3,7 +3,7 @@ import Navbar from './components/layout/Navbar';
 import './globals.css';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import ClientOnboardingWrapper from './components/ClientOnboardingWrapper';
+import OnboardingProvider from './components/OnboardingProvider';
 
 export const metadata: Metadata = {
   title: 'MyBookLyst',
@@ -44,7 +44,7 @@ export default function RootLayout({
         <div className="ambient-light" />
         <AuthProvider>
           <Navbar />
-          <ClientOnboardingWrapper />
+          <OnboardingProvider />
           <main className="pt-24 min-h-screen">
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-[50vh]">
