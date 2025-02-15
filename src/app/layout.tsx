@@ -1,5 +1,6 @@
 import { AuthProvider } from '@/lib/contexts/AuthContext';
 import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
 import './globals.css';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
@@ -40,12 +41,12 @@ export default function RootLayout({
         <link rel="icon" href="/icon.png" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
       </head>
-      <body>
+      <body className="flex flex-col min-h-screen">
         <div className="ambient-light" />
         <AuthProvider>
           <Navbar />
           <OnboardingProvider />
-          <main className="pt-24 min-h-screen">
+          <main className="pt-24 flex-grow">
             <Suspense fallback={
               <div className="flex items-center justify-center min-h-[50vh]">
                 <div className="text-cyan-200">Loading...</div>
@@ -54,6 +55,7 @@ export default function RootLayout({
               {children}
             </Suspense>
           </main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { GoogleBook, UserBook } from '@/lib/types/database';
 import Image from 'next/image';
 
@@ -11,10 +11,25 @@ interface BookSearchProps {
 
 const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
   const [searchText, setSearchText] = useState('');
+  const [searchType, setSearchType] = useState<'title' | 'author'>('title');
   const [books, setBooks] = useState<GoogleBook[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addedBooks, setAddedBooks] = useState<{ [key: string]: boolean }>({});
+  const [showPopup, setShowPopup] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  // Close popup when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+        setShowPopup(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const searchBooks = async () => {
     if (!searchText.trim()) return;
@@ -22,8 +37,12 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
     setLoading(true);
     setError(null);
     try {
+      const queryParam = searchType === 'author' 
+        ? `inauthor:${encodeURIComponent(searchText)}`
+        : `intitle:${encodeURIComponent(searchText)}`;
+
       const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchText)}&maxResults=12`
+        `https://www.googleapis.com/books/v1/volumes?q=${queryParam}&maxResults=12`
       );
       
       if (!response.ok) {
@@ -68,12 +87,62 @@ const BookSearch = ({ onBookSelect, existingBookIds }: BookSearchProps) => {
 
   return (
     <div className="mb-8">
-      <div className="flex gap-2 mb-8">
+      <div className="flex gap-2 mb-8 relative">
+        <div className="relative" ref={popupRef}>
+          <button
+            onClick={() => setShowPopup(!showPopup)}
+            className="h-[40px] aspect-square flex items-center justify-center rounded-md bg-gray-800/60 border border-gray-700 text-gray-200 hover:bg-gray-700/60 focus:border-cyan-400/30 focus:ring focus:ring-cyan-400/20"
+            title="Search filter"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"
+              />
+            </svg>
+          </button>
+          
+          {showPopup && (
+            <div className="absolute left-0 top-[44px] bg-gray-800 border border-gray-700 rounded-md shadow-lg z-10 min-w-[200px] py-2">
+              <button
+                onClick={() => {
+                  setSearchType('title');
+                  setShowPopup(false);
+                }}
+                className={`w-full px-4 py-2 text-left hover:bg-gray-700/60 ${
+                  searchType === 'title' ? 'text-cyan-400' : 'text-gray-200'
+                }`}
+              >
+                Search by Title
+              </button>
+              <button
+                onClick={() => {
+                  setSearchType('author');
+                  setShowPopup(false);
+                }}
+                className={`w-full px-4 py-2 text-left hover:bg-gray-700/60 ${
+                  searchType === 'author' ? 'text-cyan-400' : 'text-gray-200'
+                }`}
+              >
+                Search by Author
+              </button>
+            </div>
+          )}
+        </div>
+        
         <input
           type="text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          placeholder="Search for books..."
+          placeholder={`Search for ${searchType === 'author' ? 'authors' : 'books'}...`}
           className="flex-1 p-2 rounded-md bg-gray-800/60 border border-gray-700 text-gray-200 focus:border-cyan-400/30 focus:ring focus:ring-cyan-400/20"
           onKeyPress={(e) => e.key === 'Enter' && searchBooks()}
         />
