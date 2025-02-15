@@ -8,8 +8,8 @@
     "start": "next start",
     "export": "next build",
     "deploy": "next build && firebase deploy --only hosting",
-    "deploy:staging": "next build && firebase deploy --only hosting:staging",
-    "deploy:production": "next build && firebase deploy --only hosting:production",
+    "deploy:staging": "npm run clean && next build && firebase deploy --only hosting:staging",
+    "deploy:production": "npm run clean && next build && firebase deploy --only hosting:production",
     "lint": "next lint",
     "clean": "rm -rf .next && rm -rf .firebase/hosting.*.cache"
   },
