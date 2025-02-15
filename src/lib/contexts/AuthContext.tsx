@@ -94,46 +94,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      // Check specifically for TikTok's browser
+      const isTikTokBrowser = /TikTok/i.test(navigator.userAgent);
+      
+      if (isTikTokBrowser) {
+        throw new Error('TikTok browser is not supported for Google Sign-in. Please open this website in your default browser (Chrome, Safari, etc.) to sign in.');
+      }
+
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
         prompt: 'select_account'
       });
       
-      // Detect if we're in a mobile browser or WebView
-      const isMobileOrWebView = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-        || /TikTok/i.test(navigator.userAgent);
+      // For other mobile browsers, still use redirect
+      const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      console.log('Initiating Google sign-in...', { isMobileOrWebView });
+      console.log('Initiating Google sign-in...', { isMobileBrowser });
       
-      let result;
-      if (isMobileOrWebView) {
-        // Use redirect for mobile browsers and WebViews
+      if (isMobileBrowser) {
         await signInWithRedirect(auth, provider);
-        return; // The page will redirect, so we return here
+        return;
       } else {
-        // Use popup for desktop browsers
-        result = await signInWithPopup(auth, provider);
-      }
-      
-      if (result?.user) {
-        console.log('Google sign-in successful:', result.user.email);
-        
-        // Get existing user data first
-        const existingUserData = await getUser(result.user.uid);
-        
-        // Create or update user document in Firestore
-        await createOrUpdateUser({
-          ...existingUserData,
-          uid: result.user.uid,
-          email: result.user.email || '',
-          username: result.user.displayName || result.user.email?.split('@')[0] || '',
-          photoURL: result.user.photoURL || '',
-          ...(existingUserData ? {} : {
-            hasSeenTutorial: false,
-            notifications: true,
-            privacy: 'public'
-          })
-        });
+        const result = await signInWithPopup(auth, provider);
+        if (result?.user) {
+          console.log('Google sign-in successful:', result.user.email);
+          
+          // Get existing user data first
+          const existingUserData = await getUser(result.user.uid);
+          
+          // Create or update user document in Firestore
+          await createOrUpdateUser({
+            ...existingUserData,
+            uid: result.user.uid,
+            email: result.user.email || '',
+            username: result.user.displayName || result.user.email?.split('@')[0] || '',
+            photoURL: result.user.photoURL || '',
+            ...(existingUserData ? {} : {
+              hasSeenTutorial: false,
+              notifications: true,
+              privacy: 'public'
+            })
+          });
+        }
       }
     } catch (error) {
       console.error('Google sign-in error:', error);

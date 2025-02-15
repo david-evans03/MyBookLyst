@@ -12,6 +12,19 @@ export default function SignInForm() {
   const { signIn, signInWithGoogle } = useAuth();
   const router = useRouter();
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      router.push('/books');
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('TikTok browser')) {
+        setError('⚠️ TikTok browser detected: Please open mybooklyst.com in your default browser (Chrome, Safari, etc.) to sign in with Google.');
+      } else {
+        setError('Failed to sign in with Google. Please try again.');
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -25,6 +38,11 @@ export default function SignInForm() {
   return (
     <div className="auth-container">
       <h1 className="text-2xl font-bold mb-6">Sign In</h1>
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6 text-red-200">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="email">Email</label>
@@ -46,13 +64,12 @@ export default function SignInForm() {
             required
           />
         </div>
-        {error && <p className="error-text">{error}</p>}
         <button type="submit" className="btn btn-primary w-full mb-4">
           Sign In
         </button>
       </form>
       <button
-        onClick={() => signInWithGoogle()}
+        onClick={handleGoogleSignIn}
         className="btn w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 py-2"
       >
         <Image
