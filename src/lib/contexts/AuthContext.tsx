@@ -9,6 +9,8 @@ import {
   onAuthStateChanged,
   updateProfile,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
@@ -96,28 +98,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider.setCustomParameters({
         prompt: 'select_account'
       });
-      console.log('Initiating Google sign-in...');
-      const result = await signInWithPopup(auth, provider);
-      console.log('Google sign-in successful:', result.user.email);
       
-      // Get existing user data first
-      const existingUserData = await getUser(result.user.uid);
+      // Detect if we're in a mobile browser or WebView
+      const isMobileOrWebView = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+        || /TikTok/i.test(navigator.userAgent);
       
-      // Create or update user document in Firestore
-      await createOrUpdateUser({
-        ...existingUserData, // Spread existing data to preserve it
-        uid: result.user.uid,
-        email: result.user.email || '',
-        username: result.user.displayName || result.user.email?.split('@')[0] || '',
-        photoURL: result.user.photoURL || '',
-        // Only set these fields if user doesn't exist yet
-        ...(existingUserData ? {} : {
-          hasSeenTutorial: false,
-          notifications: true,
-          privacy: 'public'
-        })
-      });
-    } catch (error: unknown) {
+      console.log('Initiating Google sign-in...', { isMobileOrWebView });
+      
+      let result;
+      if (isMobileOrWebView) {
+        // Use redirect for mobile browsers and WebViews
+        await signInWithRedirect(auth, provider);
+        return; // The page will redirect, so we return here
+      } else {
+        // Use popup for desktop browsers
+        result = await signInWithPopup(auth, provider);
+      }
+      
+      if (result?.user) {
+        console.log('Google sign-in successful:', result.user.email);
+        
+        // Get existing user data first
+        const existingUserData = await getUser(result.user.uid);
+        
+        // Create or update user document in Firestore
+        await createOrUpdateUser({
+          ...existingUserData,
+          uid: result.user.uid,
+          email: result.user.email || '',
+          username: result.user.displayName || result.user.email?.split('@')[0] || '',
+          photoURL: result.user.photoURL || '',
+          ...(existingUserData ? {} : {
+            hasSeenTutorial: false,
+            notifications: true,
+            privacy: 'public'
+          })
+        });
+      }
+    } catch (error) {
       console.error('Google sign-in error:', error);
       if (error instanceof FirebaseError) {
         switch (error.code) {
@@ -134,6 +152,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
+  // Add useEffect to handle redirect result
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          console.log('Google redirect sign-in successful:', result.user.email);
+          
+          // Get existing user data first
+          const existingUserData = await getUser(result.user.uid);
+          
+          // Create or update user document in Firestore
+          await createOrUpdateUser({
+            ...existingUserData,
+            uid: result.user.uid,
+            email: result.user.email || '',
+            username: result.user.displayName || result.user.email?.split('@')[0] || '',
+            photoURL: result.user.photoURL || '',
+            ...(existingUserData ? {} : {
+              hasSeenTutorial: false,
+              notifications: true,
+              privacy: 'public'
+            })
+          });
+        }
+      } catch (error) {
+        console.error('Error handling redirect result:', error);
+      }
+    };
+
+    handleRedirectResult();
+  }, []);
 
   const signOut = async () => {
     await firebaseSignOut(auth);
