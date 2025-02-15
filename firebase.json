@@ -25,13 +25,6 @@
           }
         ]
       }
-    ],
-    "redirects": [
-      {
-        "source": "https://www.mybooklyst.com/:path*",
-        "destination": "https://mybooklyst.com/:path*",
-        "type": 301
-      }
     ]
   },
   {
