@@ -68,13 +68,16 @@ export async function addUserBook(userId: string, bookId: string, status: UserBo
     const userBookId = `${userId}_${bookId}`;
     const userBookRef = doc(db, 'userBooks', userBookId);
     
+    // Get the book to get total pages if status is completed
+    const bookDoc = status === 'completed' ? await getBook(bookId) : null;
+    
     // Create base user book data without optional fields
     const userBookData = {
       userId,      // This must match the authenticated user's ID
       bookId,
       status,
-      currentPage: 0,
-      progress: 0,
+      currentPage: status === 'completed' && bookDoc ? bookDoc.totalPages : 0,
+      progress: status === 'completed' ? 100 : 0,
       createdAt: now,
       updatedAt: now
     };
@@ -283,11 +286,25 @@ export async function updateUserBookStatus(userId: string, bookId: string, statu
     if (!userBookDoc.exists()) {
       throw new Error('Book not found in user\'s library');
     }
-    
-    await setDoc(userBookRef, {
+
+    // Get the book to get total pages
+    const bookDoc = await getBook(bookId);
+    if (!bookDoc) {
+      throw new Error('Book not found');
+    }
+
+    // If status is completed, set progress to 100% and currentPage to totalPages
+    const updateData: Partial<UserBook> = {
       status,
       updatedAt: new Date().toISOString()
-    }, { merge: true });
+    };
+
+    if (status === 'completed') {
+      updateData.currentPage = bookDoc.totalPages;
+      updateData.progress = 100;
+    }
+    
+    await setDoc(userBookRef, updateData, { merge: true });
     
     console.log('[updateUserBookStatus] Successfully updated book status');
   } catch (error: any) {
